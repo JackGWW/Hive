@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Hive/x64/Debug
+/x64/Debug
+/.vs/Hive/v15
+/Hive/.vs/Hive/v15
+/Hive/Hive.vcxproj.user
+/Hive/Hive.vcxproj.filters
+/Hive/Hive.vcxproj
