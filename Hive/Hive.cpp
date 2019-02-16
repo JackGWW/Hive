@@ -22,7 +22,7 @@ int main()
 
 	try {
 		b.add(Location(0, 0, 0), wAnt);
-		b.add(Location(0, 6, 0), bQueen);
+		b.add(Location(2, 6, 0), bQueen);
 	}
 	catch (std::invalid_argument& e) {
 		cout << "Exception when add pieces to board:" << endl;

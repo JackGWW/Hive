@@ -43,6 +43,10 @@ bool keyExists(unordered_map<Location, Piece> m, Location key)
 	return true;
 }
 
+void printBoardLine(unordered_map<Location, Piece> m, Location l, int line) 
+{
+	
+}
 
 Board::Board()
 {
@@ -59,6 +63,7 @@ void Board::print()
 	int maxX = INT_MIN, maxY = INT_MIN;
 	int minX = INT_MAX, minY = INT_MAX;
 
+	//Find bounding coordinates of board
 	for (auto& it : pieces) {
 		Location l = it.first;
 
@@ -67,13 +72,47 @@ void Board::print()
 		if (l.x < minX) minX = l.x;
 		if (l.y < minY) minY = l.y;
 	}
-	cout << maxX << ',' << maxY << ' ' << minX << ',' << minY << endl;
+	//Iterate through every hexagonal spot on the board
+	for (int i = maxY; i >= minY; i--){
+		//Iterate through all 4 lines of the hexagon
+		for (int line = 0; line < 4; line++) {
+			for (int j = minX; j <= maxX; j++) {
+				
+				switch (line) {
+				case 0: cout << '0';
+					break;
+				case 1: cout << '1';
+					break;
+				case 2: cout << '2';
+					break;
+				case 3: cout << '3';
+					break;
+				}
+				
+				if (keyExists(pieces, Location(i, j, 0))) {
+					cout << i << j << "- TRUE" << endl;
+				}
+				else {
+					cout << "FALSE";
+				}
+			}
+			cout << endl;
+		}
+	}
+
+
+	/*cout << "  ____" << endl;
+	cout << " /    \\" << endl;
+	cout << "/" << name << "\\" << endl;
+	cout << "\\" << color << "/" << endl;
+	cout << " \\____/" << endl;
+
+	cout << maxX << ',' << maxY << ' ' << minX << ',' << minY << endl; */
 }
 
 void Board::add(Location l, Piece p)
 {
-	if (keyExists(pieces, l))
-	{
+	if (keyExists(pieces, l)){
 		throw std::invalid_argument("There is already a piece in location: " + l.to_string());
 	}
 
