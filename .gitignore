@@ -3,6 +3,7 @@
 ################################################################################
 
 /Hive/x64/Debug
+/Hive/Debug
 /x64/Debug
 /.vs/Hive/v15
 /Hive/.vs/Hive/v15
@@ -11,3 +12,4 @@
 /Hive/Hive.vcxproj.filters
 /Hive/Hive.vcxproj
 Hive.sln
+Hive/Hive.sln
