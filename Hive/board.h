@@ -1,16 +1,22 @@
 #pragma once
 #include <unordered_map>
 #include "piece.h"
+#include <vector>
 
 using std::unordered_map;
-
+using std::vector;
 
 
 struct Location
 {
 	int x, y, z;
 	Location(int, int, int);
+	Location(int, int);
+	Location();
 	string to_string();
+	vector<Location> adjecent();
+	void move(int, int, int);
+	void move(int, int);
 };
 
 bool operator==(const Location& x, const Location& y);
@@ -42,6 +48,13 @@ public:
 	Board();
 	~Board();
 	void print();
+	bool exists(Location);
+	vector<Location> adjecent(Location l);
+	Location slideCW(Location l);
+	Location slideCCW(Location l);
 	void add(Location, Piece);
+	bool pinned(Location l);
+	bool surrounded(Location l);
+	bool trapped(Location);
 };
 
