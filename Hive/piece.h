@@ -6,10 +6,13 @@ using std::string;
 class Piece
 {
 private:
-	string color;
-	string name;
 public:
+	string name;
+	string color;
+	string paddedColor();
+	string paddedName();
 	Piece(string _color, string _name);
+	Piece();
 	~Piece();
 	void print();
 };
