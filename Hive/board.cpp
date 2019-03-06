@@ -88,11 +88,6 @@ bool operator==(const Location& x, const Location& y)
 }
 
 
-//void printBoardLine(unordered_map<Location, Piece> m, Location l, int line) 
-//{
-//	
-//}
-
 Board::Board()
 {
 	unordered_map<Location, Piece> pieces;
@@ -119,23 +114,6 @@ void Board::print()
 	}
 
 	cout << "PRINTING BOARD: MIN(" << minX << "," << minY << ") MAX(" << maxX << "," << maxY << ")" << endl;
-
-	////print top border for first line of hexagons
-	//for (int x = minX; x <= maxX; x ++) {
-	//	if ((x + maxY) % 2 == 0) {
-	//		if (keyExists(pieces, Location(x, maxY, 0))) {
-	//			cout << "  ____";
-	//		}
-	//		else {
-	//			cout << "      ";
-	//		}
-	//	}
-	//	else {
-	//		cout << "      ";
-	//	}
-	//	
-	//}
-	//cout << endl;
 
 	//Iterate through every hexagonal spot on the board
 	string color;
@@ -205,51 +183,7 @@ void Board::print()
 		}
 	}
 }
-//-1:"  "____"      "
-// 0:" "/"    "\"     "
-// 1:"/"      "\"____"
-//
-//        /    \      /    \      /    \  //if y & maxY == 0 
-//	   /      \____/      \____/      \ 
-////6 spa\      /    \      /    \      /   //if y & maxY == 1 
-////6 spac\____/      \____/      \____/      
-//	
-//
-//Line 0:  ' ' 
-//	check if (leftdown or current) "\" 
-//	check if (bottom or current) "____"
-//	check if (rightdown or current) "/ "
-//Line 1:
-//	check "  '"
-//	check if (leftdown or current) "\"
-//	"    "
-//	check if rightdown or current "/"
-//
-//	line printer is same,
-//	only question of where it starts and whether or not to include the botoom
-//
-//
-//
-//  ____
-// /    \
-///-1, 1 \____	always start printing close
-//\	     /	  \then print far (add the oppose from inside to the other 
-// \____/	0,0\____alternating going up and down the sides)
-// /	\      /    \
-///-1,-1 \____/ 1,-1 \
-//\	     /    \      /
-// \____/	   \____/
-//	if row is different even/odd of highest, 
-//		print four spaces to get offset required
-//	for each one, print lside rside down
-//	/*cout << "  ____" << endl;
-//	cout << " /    \\" << endl;
-//	cout << "/" << name << "\\" << endl;
-//	cout << "\\" << color << "/" << endl;
-//	cout << " \\____/" << endl;
-//
-//	cout << maxX << ',' << maxY << ' ' << minX << ',' << minY << endl; */
-//}
+
 
 void Board::add(Location l, Piece p)
 {
@@ -304,11 +238,10 @@ vector<Location> Board::adjecent(Location l)
 Location Board::slideCW(Location l)
 {
 	if (trapped(l))
-	{
 		throw std::invalid_argument("Piece cannot be moved");
 	}
-
-	//where is it fre to slide 
+	
+	//where is it free to slide 
 
 }
 
