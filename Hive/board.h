@@ -50,8 +50,8 @@ public:
 	void print();
 	bool exists(Location);
 	vector<Location> adjecent(Location l);
-	Location slideCW(Location l);
-	Location slideCCW(Location l);
+	vector<Location> slideCW(Location l);
+	vector<Location> slideCCW(Location l);
 	void add(Location, Piece);
 	bool pinned(Location l);
 	bool surrounded(Location l);

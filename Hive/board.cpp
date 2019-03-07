@@ -235,17 +235,40 @@ vector<Location> Board::adjecent(Location l)
 	return adjPieces;
 }
 
-Location Board::slideCW(Location l)
+vector<Location> Board::slideCCW(Location curLoc)
 {
-	if (trapped(l))
+	if (trapped(curLoc)){
 		throw std::invalid_argument("Piece cannot be moved");
 	}
-	
-	//where is it free to slide 
+	vector<Location> adj = curLoc.adjecent();
+	vector<Location> nextLoc;
 
+	//iterate through all six adjecent pieces
+	for (int i = 0; i < 6; i++) {
+		//to be able to slide, there needs to be a two piece gap after a piece
+		if (exists(adj[(i + 5) % 6]) && !exists(adj[i]) && !exists(adj[(i + 1) % 6])) {
+			nextLoc.push_back(adj[i]);
+		}
+	}
+	return nextLoc;
 }
 
-Location Board::slideCCW(Location l)
+vector<Location> Board::slideCW(Location curLoc)
 {
+	if (trapped(curLoc)) {
+		throw std::invalid_argument("Piece cannot be moved");
+	}
+	vector<Location> adj = curLoc.adjecent();
+	vector<Location> nextLoc;
 
+	cout << adj.size() << endl;
+
+	//iterate through all six adjecent pieces
+	for (int i = 0; i < 6; i++) {
+		//to be able to slide, there needs to be a two piece gap after a piece
+		if (exists(adj[(i + 1) % 6]) && !exists(adj[i]) && !exists(adj[(i + 5) % 6])) {
+			nextLoc.push_back(adj[i]);
+		}
+	}
+	return nextLoc;
 }
