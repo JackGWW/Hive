@@ -8,7 +8,7 @@ using std::cout;
 using std::endl;
 
 string addPadding(string word) {
-	int lineWidth = 5;
+	int lineWidth = 6;
 	int spacesToAdd = lineWidth - word.length();
 	if (spacesToAdd <= 0) {
 		return word;
