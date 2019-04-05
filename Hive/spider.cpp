@@ -1,7 +1,6 @@
 #include "spider.h"
 
 
-
 Spider::Spider(string _color)
 {
 	color = _color;
@@ -13,8 +12,8 @@ Spider::~Spider()
 {
 }
 
-vector<Location> Spider::moves(Board b, Location cur)
+
+vector<Location> Spider::moves(Board b, Location curLoc)
 {
-	//TODO 
-	return vector<Location>();
+	return b.slide(curLoc, 3);
 }
