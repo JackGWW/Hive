@@ -1,12 +1,6 @@
 // Hive.cpp : This file contains the 'main' function. Program execution begins and ends there.
 
-#include "pch.h"
-#include "piece.h"
-#include "Grasshopper.h"
-#include "board.h"
-#include <iostream>
-#include <stdlib.h>
-#include <string>
+#include "Hive.h"
 
 using std::cout;
 using std::endl;
@@ -21,20 +15,30 @@ int main()
 	string white = "white";
 	string black = "black";
 	
-	cout << "Welcome to Hive!\n";
-
 	Board b;
-
 	Piece wAnt = Piece(white, "A");
 	Piece bQueen = Piece(black, "QUEEN");
 	Grasshopper wHopper = Grasshopper(white);
-
-	Location test = Location(0, 0, 0);
 	
+	Location test = Location(0, 0, 0);
 	vector<Location> testv = test.adjecent();
-	for (Location l : testv) {
+	
+	cout << "Welcome to Hive!\n";
+
+	printLocations(testv);
+
+	cout << "DONE" << endl;
+}
+
+void printLocations(vector<Location> locations)
+{
+	Board b;
+	Piece testPiece = Piece("test", "TEST");
+
+	//Add pieces to board
+	for (Location l : locations) {
 		try {
-			b.add(l, wHopper);
+			b.add(l, testPiece);
 		}
 		catch (std::invalid_argument& e) {
 			cout << "Exception when add pieces to board:" << endl;
@@ -44,6 +48,4 @@ int main()
 	}
 
 	b.print();
-
-	cout << "DONE" << endl;
 }
