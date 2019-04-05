@@ -130,7 +130,12 @@ void Board::print()
 				case 0:
 					if ((y + x) % 2 == 0) {
 						if (exists(curLocation) || exists(Location(x - 1, y + 1))) {
-							cout << " /    ";
+							if (exists(Location(x - 1, y + 1))) {
+								cout << "/    ";						
+							}
+							else {
+								cout << " /    ";						
+							}
 						}
 						else {
 							cout << "      ";
@@ -163,7 +168,12 @@ void Board::print()
 					}
 					else {
 						if (exists(Location(x, y + 1)) || exists(Location(x - 1, y))) {
-							cout << " \\";
+							if (exists(Location(x - 1, y))) {
+								cout << "\\";
+							}
+							else {
+								cout << " \\";
+							}
 						}
 						else {
 							cout << "  ";
@@ -194,6 +204,7 @@ void Board::add(Location l, Piece p)
 	pieces.insert(std::make_pair(l, p));
 }
 
+//TODO implement the pinned function
 bool Board::pinned(Location l)
 {
 	//can't moved because it would break the hive
@@ -201,9 +212,16 @@ bool Board::pinned(Location l)
 }
 
 bool Board::surrounded(Location l) 
-{
-	//can't physically move
-	return false;
+{	
+	//Can't physically move
+	//If there are two consecutive empty adjecent spaces, it isn't surrounded
+	vector<Location> adj = l.adjecent();
+	for (int i = 0; i < 6; i++) { 
+		if (!exists(adj[i]) && !exists(adj[(i + 1) % 6])) {
+			return false;
+		}
+	}
+	return true;
 }
 
 bool Board::trapped(Location l)
@@ -235,6 +253,50 @@ vector<Location> Board::adjecent(Location l)
 	return adjPieces;
 }
 
+vector<Location> Board::slide(Location curLoc, int moves)
+{
+	if (moves <= 0) {
+		throw std::invalid_argument("Number of moves must be greater than 0");
+	}
+	
+	vector<Location> destinations;
+
+	// Find all destinations sliding clockwise
+	vector<Location> curLocations;
+	vector<Location> nextLocations;
+	vector<Location> nextLoc;
+	curLocations.push_back(curLoc);
+	for (int i = 0; i < moves; i++) {
+		//Get next location for every current location
+		for (Location l : curLocations) {
+			nextLoc = slideCW(l);
+			nextLocations.insert(nextLoc.end(), nextLoc.begin(), nextLoc.end());
+		}
+		curLocations = nextLocations;
+		nextLocations.clear();
+	}
+	destinations.insert(curLocations.end(), curLocations.begin(), curLocations.end());
+
+	// Find all destinations sliding counter-clockwise
+	curLocations.clear();
+	nextLocations.clear();
+	nextLoc.clear();
+	curLocations.push_back(curLoc);
+	for (int i = 0; i < moves; i++) {
+		//Get next location for every current location
+		for (Location l : curLocations) {
+			nextLoc = slideCCW(l);
+			nextLocations.insert(nextLoc.end(), nextLoc.begin(), nextLoc.end());
+		}
+		curLocations = nextLocations;
+		nextLocations.clear();
+	}
+	destinations.insert(curLocations.end(), curLocations.begin(), curLocations.end());
+
+	return destinations;
+}
+
+//TODO refactor slideCCW and slideCW to have less duplicated code
 vector<Location> Board::slideCCW(Location curLoc)
 {
 	if (trapped(curLoc)){
@@ -260,8 +322,6 @@ vector<Location> Board::slideCW(Location curLoc)
 	}
 	vector<Location> adj = curLoc.adjecent();
 	vector<Location> nextLoc;
-
-	cout << adj.size() << endl;
 
 	//iterate through all six adjecent pieces
 	for (int i = 0; i < 6; i++) {
