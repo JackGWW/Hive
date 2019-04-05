@@ -13,8 +13,8 @@ Spider::~Spider()
 {
 }
 
-vector<Location> Spider::moves(Board, Location)
+vector<Location> Spider::moves(Board b, Location cur)
 {
-	
+	//TODO 
 	return vector<Location>();
 }
