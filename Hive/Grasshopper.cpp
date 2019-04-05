@@ -12,12 +12,10 @@ Grasshopper::~Grasshopper()
 {
 }
 
+
 vector<Location> Grasshopper::moves(Board b, Location cur) {
 	vector<Location> destinations;
 	vector<Location> adj = cur.adjecent();
-
-	//TODO add adjecent function to board
-	//TODO get all adjecent pieces from board passing in location
 
 	Location next;
 	int xStep, yStep;
@@ -35,9 +33,3 @@ vector<Location> Grasshopper::moves(Board b, Location cur) {
 	}
 	return destinations;
 }
-
-//Get all valid places it can move
-
-//Check if proposed moved is valid
-
-//
