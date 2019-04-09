@@ -34,7 +34,7 @@ namespace std {
 			using std::string;
 
 			//x & y range from -50 to 50, z ranges from 0-10
-			return l.x + l.z * 10 + l.y * 100;
+			return l.x + l.y * 10 + l.z * 100;
 		}
 	};
 }
