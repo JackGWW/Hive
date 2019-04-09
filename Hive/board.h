@@ -49,12 +49,13 @@ public:
 	~Board();
 	void print();
 	bool exists(Location);
-	vector<Location> adjecent(Location l);
-	vector<Location> slideCW(Location l);
-	vector<Location> slideCCW(Location l);
+	vector<Location> adjecent(Location);
+	vector<Location> slide(Location curLoc, int moves);
+	vector<Location> slideCW(Location);
+	vector<Location> slideCCW(Location);
 	void add(Location, Piece);
-	bool pinned(Location l);
-	bool surrounded(Location l);
+	bool pinned(Location);
+	bool surrounded(Location);
 	bool trapped(Location);
 };
 
