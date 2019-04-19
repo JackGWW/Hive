@@ -4,7 +4,7 @@
 Spider::Spider(string _color)
 {
 	color = _color;
-	name = "SPIDR";
+	name = "SPIDER";
 }
 
 
