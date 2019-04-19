@@ -6,12 +6,18 @@
 #include <stdlib.h>
 #include <string>
 #include <unordered_map>
+#include <queue>
+#include <set>
 
 
 using std::cout;
 using std::endl;
 using std::string;
 using std::unordered_map;
+using std::queue;
+using std::set;
+
+//TODO implement iterators for adjecent pieces
 
 Location::Location(int _x, int _y, int _z)
 {
@@ -80,11 +86,6 @@ void Location::move(int _x, int _y)
 {
 	x += _x;
 	y += _y;
-}
-
-bool operator==(const Location& x, const Location& y)
-{
-	return x.x == y.x && x.y == y.y;
 }
 
 
@@ -253,12 +254,60 @@ vector<Location> Board::adjecent(Location l)
 	return adjPieces;
 }
 
+vector<Location> Board::slide(Location curLoc)
+{
+	set<Location> destinations;
+	queue<Location> toVisit;
+	vector<Location> addToVisit;
+	Location visiting;
+
+	toVisit.push(curLoc);
+
+	while (!toVisit.empty()) {
+		visiting = toVisit.front();
+		destinations.insert(visiting);
+
+		addToVisit = slideCW(visiting);
+		for (Location l : addToVisit) {
+			if (!destinations.count(l)) {
+				toVisit.push(l);
+			}
+		}
+		toVisit.pop();
+	}
+	return vector<Location>(destinations.begin(), destinations.end());
+}
+
+vector<Location> Board::slideOnTop(Location curLoc) {
+	if (curLoc.z <= 0) {
+		throw std::invalid_argument("Current location must be above ground level");
+	}
+
+	vector<Location> destinations;
+	vector<Location> groundAdj = adjecent(Location(curLoc.x, curLoc.y));
+	for (int i = 0; i < 6; i++) {
+		if (exists(groundAdj[i])) {
+			destinations.push_back(top(groundAdj[i]));
+		}
+	}
+	return destinations;
+}
+
+//TODO add a check ensuring no duplicate locations
+//TODO convert vector of locations to a set
 vector<Location> Board::slide(Location curLoc, int moves)
 {
 	if (moves <= 0) {
 		throw std::invalid_argument("Number of moves must be greater than 0");
 	}
-	
+
+	if (curLoc.z > 0) {
+		if (moves != 1) {
+			throw std::invalid_argument("Can only slide 1 at a time on top of the hive");
+		}
+		return slideOnTop(curLoc);
+	}
+
 	vector<Location> destinations;
 
 	// Find all destinations sliding clockwise
@@ -313,6 +362,77 @@ vector<Location> Board::slideCCW(Location curLoc)
 		}
 	}
 	return nextLoc;
+}
+
+bool Board::isAdjecent2D(Location start, Location end) {
+	int xDelta = start.x - end.x;
+	int yDelta = start.y - end.y;
+	if (abs(xDelta) > 1 || abs(yDelta) > 1) {
+		return false;
+	}
+	return true;
+}
+
+bool Board::canSlide(Location start, Location end) {
+	if (!isAdjecent2D(start, end)) {
+		throw std::invalid_argument("Pieces must be adjecent");
+	}
+	int zCoord = std::max(start.z, end.z);
+	vector<Location> guardPieces;
+	vector<Location> startAdj = adjecent(Location(start.x, start.y, zCoord));
+	
+	//Find the two mutually adjecent pieces
+	for (int i = 0; i < 6; i++) {
+		if (isAdjecent2D(startAdj[i], end)) {
+			guardPieces.push_back(startAdj[i]);
+		}
+	}
+
+	//Can't slide if both mutually adjecent pieces exist
+	if (exists(guardPieces[0]) && exists(guardPieces[1])) {
+		return false;
+	}
+	return true;
+}
+
+vector<Location> Board::descend(Location curLoc) {
+	vector<Location> destinations;
+	//On the ground, cannot descend
+	if (curLoc.z == 0) {
+		return destinations;
+	}
+
+	vector<Location> adj = adjecent(curLoc);
+	
+	for (int i = 0; i < 6; i++) {
+		int xCoord = adj[i].x;
+		int yCoord = adj[i].y;
+		Location ground = Location(xCoord, yCoord);
+		if (!exists(ground) && canSlide(curLoc, ground)) {
+			destinations.push_back(ground);
+		}
+	}
+
+	return destinations;
+}
+
+Location Board::top(Location curLoc) {
+	while (exists(curLoc)) {
+		curLoc.move(0, 0, 1);
+	}
+	return curLoc;
+}
+
+vector<Location> Board::climb(Location curLoc) {
+	vector<Location> destinations;
+	vector<Location> adj = adjecent(curLoc);
+	for (int i = 0; i < 6; i++) {
+		if (exists(adj[i]) && canSlide(curLoc, adj[i])) {
+			destinations.push_back(top(adj[i]));
+		}
+	}
+
+	return destinations;
 }
 
 vector<Location> Board::slideCW(Location curLoc)
