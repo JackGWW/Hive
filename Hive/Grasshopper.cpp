@@ -4,7 +4,7 @@
 Grasshopper::Grasshopper(string _color)
 {
 	color = _color;
-	name = "HOP";
+	name = "HOPPER";
 }
 
 
