@@ -51,7 +51,7 @@ void Piece::print()
 {	
 	cout << "  ____" << endl;
 	cout << " /    \\" << endl;
-	cout << "/" << addPadding(name) << " \\" << endl;
-	cout << "\\" << addPadding(color) << " /" << endl;
+	cout << "/" << addPadding(name) << "\\" << endl;
+	cout << "\\" << addPadding(color) << "/" << endl;
 	cout << " \\____/" << endl;
 }
