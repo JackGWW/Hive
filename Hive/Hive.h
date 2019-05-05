@@ -15,18 +15,30 @@
 #include <string>
 
 using std::vector;
-
+using std::string;
 void printLocations(vector<Location>);
 
 
 class Game
 {
 private:
-	unordered_map<string, string> names;
-	unordered_map<string, vector<Piece>> unusedPieces;
+	vector<string> names;
+	int curPlayer = 0;
+	int turnCount = 0;
+	vector<vector<Piece>> unusedPieces;
 	Board board;
+	string white = "white";
+	string black = "black";
+	vector<string> colors{ white, black };
+	bool gameOver = false;
 public:
 	Game(string, string);
 	~Game();
+	void play();
+	void nextTurn();
+	void playPiece(Piece p);
+	void movePiece(Location l);
+	void playTurn();
+	void printUnusedPieces(int player, int offset=0);
 	void addStartingPieces();
 };
