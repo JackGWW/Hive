@@ -1,63 +1,40 @@
 #pragma once
 #include <unordered_map>
 #include "piece.h"
+#include "location.h"
 #include <vector>
 #include <set>
 
 using std::unordered_map;
 using std::vector;
 using std::set;
-
-
-struct Location
-{
-	int x, y, z;
-	Location(int, int, int);
-	Location(int, int);
-	Location();
-	string to_string();
-	vector<Location> adjecent();
-	void move(int, int, int);
-	void move(int, int);
-};
-
-inline bool operator==(const Location& lhs, const Location& rhs) { return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z; }
-inline bool operator!=(const Location& lhs, const Location& rhs) { return !operator==(lhs, rhs); }
-inline bool operator< (const Location& lhs, const Location& rhs) { return (lhs.x + lhs.y * 10 + lhs.z * 100) < (rhs.x + rhs.y * 10 + rhs.z * 100); }
-inline bool operator> (const Location& lhs, const Location& rhs) { return  operator< (rhs, lhs); }
-inline bool operator<=(const Location& lhs, const Location& rhs) { return !operator> (lhs, rhs); }
-inline bool operator>=(const Location& lhs, const Location& rhs) { return !operator< (lhs, rhs); }
-
-namespace std {
-
-	template <>
-	struct hash<Location>
-	{
-		std::size_t operator()(const Location& l) const
-		{
-			using std::size_t;
-			using std::hash;
-			using std::string;
-
-			//x & y range from -50 to 50, z ranges from 0-10
-			return l.x + l.y * 10 + l.z * 100;
-		}
-	};
-}
+using std::string;
 
 
 class Board
 {
 private:
 	unordered_map<Location, Piece> pieces;
+	unordered_map<string, bool> queenPlayed;
 public:
 	Board();
 	~Board();
+	Piece getPiece(const Location & l);
+	bool onTop(const Location & l);
+	bool onlyTouches(const Location & l, const string & color);
+	vector<Location> getColoredPieces(const string & color);
+	vector<Location> getPlacementLocations(string color);
+	void move(Location origin, Location destination);
+	Piece remove(Location l);
+	vector<Location> getMoveablePieces(string color);
 	void print();
+	void print(vector<Location> numberedLocations);
+	void add(const Location & l, const Piece & p);
 	bool exists(Location);
 	vector<Location> adjecent(Location);
 	vector<Location> slide(Location curLoc, int moves);
 	vector<Location> slide(Location curLoc);
+	vector<Location> groundedAdjecent(Location l);
 	vector<Location> slideOnTop(Location curLoc);
 	vector<Location> slideCW(Location);
 	vector<Location> slideCCW(Location);
@@ -66,9 +43,10 @@ public:
 	vector<Location> descend(Location curLoc);
 	Location top(Location curLoc);
 	vector<Location> climb(Location curLoc);
-	void add(Location, Piece);
 	bool pinned(Location);
+	bool covered(Location l);
 	bool surrounded(Location);
 	bool trapped(Location);
 };
 
+string locationIndex(vector<Location> vecOfElements, Location element);
