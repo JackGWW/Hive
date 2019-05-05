@@ -13,3 +13,4 @@
 /Hive/Hive.vcxproj
 Hive.sln
 Hive/Hive.sln
+*.sqlite
