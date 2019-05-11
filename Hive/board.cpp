@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <queue>
 #include <set>
 
@@ -14,8 +15,8 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::unordered_map;
+using std::unordered_set;
 using std::queue;
-using std::set;
 
 
 Board::Board()
@@ -69,20 +70,19 @@ vector<Location> Board::getColoredPieces(const string & color) {
 
 vector<Location> Board::getPlacementLocations(const string & color)
 {
-	vector<Location> validLocations;
+	unordered_set<Location> validLocations;
 	vector<Location> allLocations = getColoredPieces(color);
 
-	//TODO convert to set to remove duplicates
 	for (Location l : allLocations) {
 		vector<Location> adj = groundedAdjecent(l);
 		for (Location a : adj) {
 			if (!exists(a) && onlyTouches(a, color)) {
-				validLocations.push_back(a);
+				validLocations.emplace(a);
 			}
 		}
 	}
 
-	return validLocations;
+	return vector<Location> (validLocations.begin(), validLocations.end());
 }
 
 void Board::move(Location origin, Location destination)
@@ -106,7 +106,6 @@ vector<Location> Board::getMoveablePieces(string color)
 	vector<Location> allLocations = getColoredPieces(color);
 	bool queenPlaced = false;
 
-	//TODO convert to set to remove duplicates
 	for (Location l : allLocations) {
 		if (pieces.at(l).isQueen()) {
 			queenPlaced = true;
@@ -292,8 +291,8 @@ void Board::add(const Location& l, const Piece& p)
 	if (exists(l)){
 		throw std::invalid_argument("There is already a piece in location: " + l.to_string());
 	}
-
-	pieces.insert(std::make_pair(l, p));
+	pieces.emplace(l, p);
+	//TODO use return value to check if it was successfully inserted instead of check in advance
 }
 
 //TODO implement the pinned function
@@ -354,7 +353,7 @@ vector<Location> Board::adjecent(const Location & l)
 
 vector<Location> Board::slide(const Location & curLoc)
 {
-	set<Location> destinations;
+	unordered_set<Location> destinations;
 	queue<Location> toVisit;
 	vector<Location> addToVisit;
 	Location visiting;
@@ -368,7 +367,7 @@ vector<Location> Board::slide(const Location & curLoc)
 
 	while (!toVisit.empty()) {
 		visiting = toVisit.front();
-		destinations.insert(visiting);
+		destinations.emplace(visiting);
 
 		addToVisit = slideCW(visiting);
 		for (Location l : addToVisit) {
@@ -407,8 +406,6 @@ vector<Location> Board::slideOnTop(const Location & curLoc) {
 	return destinations;
 }
 
-//TODO add a check ensuring no duplicate locations
-//TODO convert vector of locations to a set
 vector<Location> Board::slide(const Location & curLoc, int moves)
 {
 	if (moves <= 0) {
@@ -421,12 +418,12 @@ vector<Location> Board::slide(const Location & curLoc, int moves)
 		}
 		return slideOnTop(curLoc);
 	}
-
-	vector<Location> destinations;
-
+	
 	if (trapped(curLoc)) {
-		return destinations;
+		return vector<Location>();
 	}
+
+	unordered_set<Location> destinations;
 
 	// Find all destinations sliding clockwise
 	vector<Location> curLocations;
@@ -442,7 +439,7 @@ vector<Location> Board::slide(const Location & curLoc, int moves)
 		curLocations = nextLocations;
 		nextLocations.clear();
 	}
-	destinations.insert(curLocations.end(), curLocations.begin(), curLocations.end());
+	destinations.insert(curLocations.begin(), curLocations.end());
 
 	// Find all destinations sliding counter-clockwise
 	curLocations.clear();
@@ -458,9 +455,9 @@ vector<Location> Board::slide(const Location & curLoc, int moves)
 		curLocations = nextLocations;
 		nextLocations.clear();
 	}
-	destinations.insert(curLocations.end(), curLocations.begin(), curLocations.end());
+	destinations.insert(curLocations.begin(), curLocations.end());
 
-	return destinations;
+	return vector<Location> (destinations.begin(), destinations.end());
 }
 
 vector<Location> Board::slideCCW(const Location & curLoc)
