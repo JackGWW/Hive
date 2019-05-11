@@ -61,7 +61,7 @@ string Location::to_string() const
 	return str;
 }
 
-vector<Location> Location::adjecent()
+vector<Location> Location::adjecent() const
 {
 	vector<Location> adj;
 	adj.push_back(Location(x, y + 2, z));
