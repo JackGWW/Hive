@@ -8,7 +8,9 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <queue>
+#include <utility> //unique_ptr
 #include <set>
+#include <memory>
 
 
 using std::cout;
@@ -17,11 +19,11 @@ using std::string;
 using std::unordered_map;
 using std::unordered_set;
 using std::queue;
+using std::unique_ptr;
 
 
 Board::Board()
 {
-	unordered_map<Location, Piece> pieces;
 }
 
 
@@ -29,11 +31,6 @@ Board::~Board()
 {
 }
 
-
-Piece Board::getPiece(const Location & l)
-{
-	return pieces.at(l);
-}
 
 bool Board::onTop(const Location & l) {
 	if (!(exists(l))) {
@@ -44,9 +41,9 @@ bool Board::onTop(const Location & l) {
 
 
 bool Board::onlyTouches(const Location & l, const string & color) {
-	vector<Location> adj = adjecent(l);
+	vector<Location> adj = adjecentPieces(l);
 	for (Location a : adj) {
-		if (pieces.at(a).color != color) {
+		if (pieces.at(a)->color != color) {
 			return false;
 		}
 	}
@@ -59,9 +56,8 @@ vector<Location> Board::getColoredPieces(const string & color) {
 	//Find all locations in the board that are the same color
 	for (auto& it : pieces) {
 		Location l = it.first;
-		Piece p = it.second;
 
-		if (p.color == color && onTop(l)) {
+		if (it.second->color == color && onTop(l)) {
 			allLocations.push_back(l);
 		}
 	}
@@ -74,7 +70,7 @@ vector<Location> Board::getPlacementLocations(const string & color)
 	vector<Location> allLocations = getColoredPieces(color);
 
 	for (Location l : allLocations) {
-		vector<Location> adj = groundedAdjecent(l);
+		vector<Location> adj = groundedAdjecentLocations(l);
 		for (Location a : adj) {
 			if (!exists(a) && onlyTouches(a, color)) {
 				validLocations.emplace(a);
@@ -85,17 +81,24 @@ vector<Location> Board::getPlacementLocations(const string & color)
 	return vector<Location> (validLocations.begin(), validLocations.end());
 }
 
-void Board::move(Location origin, Location destination)
+vector<Location> Board::getMovementLocations(const Location & l)
+{
+	return pieces.at(l)->moves(*this, l);
+	//return vector<Location>();
+}
+
+void Board::movePiece(Location origin, Location destination)
 {
 	if (trapped(origin)) {
 		throw std::invalid_argument("Piece is trapped and cannot be moved");
 	}
-	Piece toAdd = remove(origin);
-	add(destination, toAdd);
+
+	unique_ptr<Piece> toAdd = remove(origin);
+	addPiece(destination, std::move(toAdd));
 }
 
-Piece Board::remove(Location l) {
-	Piece p = pieces.at(l);
+unique_ptr<Piece> Board::remove(Location l) {
+	unique_ptr<Piece> p (std::move(pieces.at(l)));
 	pieces.erase(l);
 	return p;
 }
@@ -107,7 +110,7 @@ vector<Location> Board::getMoveablePieces(string color)
 	bool queenPlaced = false;
 
 	for (Location l : allLocations) {
-		if (pieces.at(l).isQueen()) {
+		if (pieces.at(l)->isQueen()) {
 			queenPlaced = true;
 		}
 		if (!trapped(l)) {
@@ -144,22 +147,57 @@ std::pair<bool, int > findInVector(const std::vector<T>  & vecOfElements, const 
 	return result;
 }
 
+std::pair<bool, int > findInVector2D(const std::vector<Location>  & vecOfElements, const Location  & element)
+{
+	std::pair<bool, int > result;
+
+	// Find given element in vector
+	for (std::size_t i = 0; i < vecOfElements.size(); i++) {
+		if (vecOfElements[i].x == element.x && vecOfElements[i].y == element.y) {
+			result.first = true;
+			result.second = i;
+			return result;
+		}
+	}
+	result.first = false;
+	result.second = -1;
+	return result;
+}
+
 string locationIndex(const vector<Location> & allLocations, const Location & specificLocation)
 {
 	std::pair<bool, int> result = findInVector<Location>(allLocations, specificLocation);
 
 	if (result.first) {
-		if (result.second < 10) {
-			return ' ' + std::to_string(result.second);
-		}
-		else {
-			return std::to_string(result.second);
-		}
+		return intToString(result.second);
 	}
 	else {
 		return "  ";
 	}
 }
+
+string locationIndex2D(const vector<Location> & allLocations, const Location & specificLocation)
+{
+	std::pair<bool, int> result = findInVector2D(allLocations, specificLocation);
+
+	if (result.first) {
+		return intToString(result.second);
+	}
+	else {
+		return "  ";
+	}
+}
+
+string intToString(int number) {
+	if (number < 10) {
+		return ' ' + std::to_string(number);
+	}
+	else {
+		return std::to_string(number);
+	}
+
+}
+
 
 
 void Board::print()
@@ -207,17 +245,17 @@ void Board::print(vector<Location> numberedLocations)
 				}
 				switch (line) {
 				case 0:
-					//Top of hexagon
+					//Line 1 of hexagon
 					if ((y + x) % 2 == 0) {
-						number = locationIndex(numberedLocations, curLocation);
-						if (exists(Location(x - 1, y + 1))) {
+						number = locationIndex2D(numberedLocations, curLocation);
+						if (exists2D(Location(x - 1, y + 1))) {
 							prefix = "";
 						}
 						else {
 							prefix = " ";
 						}
-						if (exists(curLocation) || exists(Location(x - 1, y + 1))) {
-							if (exists(curLocation)) {
+						if (exists2D(curLocation) || exists2D(Location(x - 1, y + 1))) {
+							if (exists2D(curLocation)) {
 								cout << prefix << "/ " << number << " ";						
 							}
 							else {
@@ -230,11 +268,11 @@ void Board::print(vector<Location> numberedLocations)
 					}
 					//Line 3 of hexagon
 					else {
-						if (exists(Location(x, y + 1))) {
-							color = pieces[Location(x, y + 1)].paddedColor();
+						if (exists2D(Location(x, y + 1))) {
+							color = pieces[topPieceLocation(Location(x, y + 1))]->paddedColor();
 							cout << "\\" << color;
 						}
-						else if(exists(Location(x - 1, y ))) {
+						else if(exists2D(Location(x - 1, y ))) {
 						    cout << "\\     ";
 						} else {
 							cout << "      ";
@@ -244,12 +282,12 @@ void Board::print(vector<Location> numberedLocations)
 				case 1:
 					//Line 2 of hexagon
 					if ((y + x) % 2 == 0) {
-						number = locationIndex(numberedLocations, curLocation);
-						if (exists(curLocation)) {
-							name = pieces[curLocation].paddedName();
+						number = locationIndex2D(numberedLocations, curLocation);
+						if (exists2D(curLocation)) {
+							name = pieces[topPieceLocation(curLocation)]->paddedName();
 							cout << "/" << name;
 						}
-						else if (exists(Location(x - 1, y + 1))) {
+						else if (exists2D(Location(x - 1, y + 1))) {
 							cout << "/ " << number << "  ";
 						}
 						else {
@@ -258,8 +296,8 @@ void Board::print(vector<Location> numberedLocations)
 					}
 					//Line 4 of hexagon
 					else {
-						if (exists(Location(x, y + 1)) || exists(Location(x - 1, y))) {
-							if (exists(Location(x - 1, y))) {
+						if (exists2D(Location(x, y + 1)) || exists2D(Location(x - 1, y))) {
+							if (exists2D(Location(x - 1, y))) {
 								cout << "\\";
 							}
 							else {
@@ -269,7 +307,7 @@ void Board::print(vector<Location> numberedLocations)
 						else {
 							cout << "  ";
 						}
-						if (exists(Location(x, y + 1)) || exists(Location(x, y -1))) {
+						if (exists2D(Location(x, y + 1)) || exists2D(Location(x, y -1))) {
 							cout << "____";
 						}
 						else {
@@ -286,34 +324,34 @@ void Board::print(vector<Location> numberedLocations)
 }
 
 
-void Board::add(const Location& l, const Piece& p)
+void Board::addPiece(const Location& l, unique_ptr<Piece> p)
 {
 	if (exists(l)){
 		throw std::invalid_argument("There is already a piece in location: " + l.to_string());
 	}
-	pieces.emplace(l, p);
+	pieces.emplace(l, move(p));
 	//TODO use return value to check if it was successfully inserted instead of check in advance
 }
 
 //TODO implement the pinned function
-bool Board::pinned(const Location & l)
+bool Board::pinned(const Location & l) const
 {
 	//can't moved because it would break the hive
 	return false;
 }
 
 //Check if there is a piece on top
-bool Board::covered(Location l)
+bool Board::covered(Location l) const
 {
 	l.move(0, 0, 1);
 	return exists(l);
 }
 
-bool Board::surrounded(const Location & l) 
+bool Board::surrounded(const Location & l) const 
 {	
 	//Can't physically move
 	//If there are two consecutive empty adjecent spaces, it isn't surrounded
-	vector<Location> adj = l.adjecent();
+	vector<Location> adj = l.adjecentLocations();
 	for (int i = 0; i < 6; i++) { 
 		if (!exists(adj[i]) && !exists(adj[(i + 1) % 6])) {
 			return false;
@@ -322,23 +360,32 @@ bool Board::surrounded(const Location & l)
 	return true;
 }
 
-bool Board::trapped(const Location & l)
+bool Board::trapped(const Location & l) const
 {
 	return covered(l) || pinned(l) || surrounded(l);
 }
 
-bool Board::exists(const Location & l)
+bool Board::exists(const Location & l) const
 {
-	if (pieces.find(l) == pieces.end())
+	if (pieces.find(l) == pieces.end()) 
 		return false;
 	
 	return true;
 }
 
-vector<Location> Board::adjecent(const Location & l)
+bool Board::exists2D(const Location & l) const
+{
+	for (const auto& any : pieces) {
+		if (any.first.x == l.x && any.first.y == l.y)
+			return true;
+	}
+	return false;
+}
+
+vector<Location> Board::adjecentPieces(const Location & l) const
 {	
 	vector<Location> adjPieces;
-	vector<Location> adjSpots = l.adjecent();
+	vector<Location> adjSpots = l.adjecentLocations();
 
 	for (Location spot : adjSpots)
 	{
@@ -351,40 +398,45 @@ vector<Location> Board::adjecent(const Location & l)
 	return adjPieces;
 }
 
-vector<Location> Board::slide(const Location & curLoc)
+vector<Location> Board::slide(const Location & curLoc) const
 {
-	unordered_set<Location> destinations;
+	unordered_set<Location> visited;
 	queue<Location> toVisit;
 	vector<Location> addToVisit;
 	Location visiting;
 
 	if (trapped(curLoc)){
-		return vector<Location>(destinations.begin(), destinations.end());
+		return vector<Location>();
 	}
 
-
-	toVisit.push(curLoc);
+	addToVisit = slideCW(curLoc);
+	for (Location l : addToVisit) {
+		toVisit.push(l);
+	}
 
 	while (!toVisit.empty()) {
 		visiting = toVisit.front();
-		destinations.emplace(visiting);
+		visited.emplace(visiting);
 
 		addToVisit = slideCW(visiting);
 		for (Location l : addToVisit) {
-			if (!destinations.count(l)) {
+			//Don't add places we've already checked
+			if (!visited.count(l)) {
 				toVisit.push(l);
 			}
 		}
 		toVisit.pop();
 	}
-	return vector<Location>(destinations.begin(), destinations.end());
+	return vector<Location>(visited.begin(), visited.end());
 }
 
-vector<Location> Board::groundedAdjecent(const Location & l) {
-	return Location(l.x, l.y).adjecent();
+vector<Location> Board::groundedAdjecentLocations(const Location & l) const
+{
+	return Location(l.x, l.y).adjecentLocations();
 }
 
-vector<Location> Board::slideOnTop(const Location & curLoc) {
+vector<Location> Board::slideOnTop(const Location & curLoc) const
+{
 	if (curLoc.z <= 0) {
 		throw std::invalid_argument("Current location must be above ground level");
 	}
@@ -394,10 +446,9 @@ vector<Location> Board::slideOnTop(const Location & curLoc) {
 		return destinations;
 	}
 
-	vector<Location> groundAdj = groundedAdjecent(curLoc);
-	for (int i = 0; i < 6; i++) {
-		if (exists(groundAdj[i])){
-			Location dest = top(groundAdj[i]);
+	vector<Location> groundAdj = groundedAdjecentLocations(curLoc);
+	for (Location dest : groundAdj) {
+		if (exists(dest)){
 			if (canSlide(dest, curLoc)) {
 				destinations.push_back(dest);
 			}
@@ -406,7 +457,7 @@ vector<Location> Board::slideOnTop(const Location & curLoc) {
 	return destinations;
 }
 
-vector<Location> Board::slide(const Location & curLoc, int moves)
+vector<Location> Board::slide(const Location & curLoc, int moves) const
 {
 	if (moves <= 0) {
 		throw std::invalid_argument("Number of moves must be greater than 0");
@@ -434,7 +485,7 @@ vector<Location> Board::slide(const Location & curLoc, int moves)
 		//Get next location for every current location
 		for (Location l : curLocations) {
 			nextLoc = slideCW(l);
-			nextLocations.insert(nextLoc.end(), nextLoc.begin(), nextLoc.end());
+			nextLocations.insert(nextLocations.end(), nextLoc.begin(), nextLoc.end());
 		}
 		curLocations = nextLocations;
 		nextLocations.clear();
@@ -450,7 +501,7 @@ vector<Location> Board::slide(const Location & curLoc, int moves)
 		//Get next location for every current location
 		for (Location l : curLocations) {
 			nextLoc = slideCCW(l);
-			nextLocations.insert(nextLoc.end(), nextLoc.begin(), nextLoc.end());
+			nextLocations.insert(nextLocations.end(), nextLoc.begin(), nextLoc.end());
 		}
 		curLocations = nextLocations;
 		nextLocations.clear();
@@ -460,12 +511,12 @@ vector<Location> Board::slide(const Location & curLoc, int moves)
 	return vector<Location> (destinations.begin(), destinations.end());
 }
 
-vector<Location> Board::slideCCW(const Location & curLoc)
+vector<Location> Board::slideCCW(const Location & curLoc) const
 {
 	if (trapped(curLoc)){
 		throw std::invalid_argument("Piece cannot be moved");
 	}
-	vector<Location> adj = curLoc.adjecent();
+	vector<Location> adj = curLoc.adjecentLocations();
 	vector<Location> nextLoc;
 
 	//iterate through all six adjecent pieces
@@ -478,49 +529,52 @@ vector<Location> Board::slideCCW(const Location & curLoc)
 	return nextLoc;
 }
 
-bool Board::isAdjecent2D(const Location & start, const Location & end) {
+bool Board::isAdjecent2D(const Location & start, const Location & end) const
+{
 	int xDelta = start.x - end.x;
 	int yDelta = start.y - end.y;
-	if (abs(xDelta) > 1 || abs(yDelta) > 1) {
+	if (abs(xDelta) + abs(yDelta) > 2) {
 		return false;
 	}
 	return true;
 }
 
-bool Board::canSlide(const Location & end, const Location & start) {
+bool Board::canSlide(const Location & end, const Location & start) const
+{
 	if (!isAdjecent2D(start, end)) {
 		throw std::invalid_argument("Pieces must be adjecent");
 	}
 	int zCoord = std::max(start.z, end.z);
 	vector<Location> guardPieces;
-	vector<Location> startAdj = adjecent(Location(start.x, start.y, zCoord));
+	vector<Location> startAdj = adjecentPieces(Location(start.x, start.y, zCoord));
 	
-	//Find the two mutually adjecent pieces
-	for (int i = 0; i < 6; i++) {
-		if (isAdjecent2D(startAdj[i], end)) {
-			guardPieces.push_back(startAdj[i]);
+	//Find mutually adjecent pieces
+	for (Location l : startAdj) {
+		if (isAdjecent2D(l, end)) {
+			guardPieces.push_back(l);
 		}
 	}
 
 	//Can't slide if both mutually adjecent pieces exist
-	if (exists(guardPieces[0]) && exists(guardPieces[1])) {
+	if (guardPieces.size() > 1) {
 		return false;
 	}
 	return true;
 }
 
-vector<Location> Board::descend(const Location & curLoc) {
+vector<Location> Board::descend(const Location & curLoc) const
+{
 	vector<Location> destinations;
 	//On the ground, cannot descend
 	if (curLoc.z == 0) {
 		return destinations;
 	}
 
-	vector<Location> adj = adjecent(curLoc);
+	vector<Location> adj = adjecentPieces(curLoc);
 	
-	for (int i = 0; i < 6; i++) {
-		int xCoord = adj[i].x;
-		int yCoord = adj[i].y;
+	for (Location l : adj) {
+		int xCoord = l.x;
+		int yCoord = l.y;
 		Location ground = Location(xCoord, yCoord);
 		if (!exists(ground) && canSlide(ground, curLoc)) {
 			destinations.push_back(ground);
@@ -530,31 +584,45 @@ vector<Location> Board::descend(const Location & curLoc) {
 	return destinations;
 }
 
-Location Board::top(Location curLoc) {
+Location Board::locationOnTop(Location curLoc) const
+{
 	while (exists(curLoc)) {
 		curLoc.move(0, 0, 1);
 	}
 	return curLoc;
 }
 
-vector<Location> Board::climb(const Location & curLoc) {
+Location Board::topPieceLocation(Location curLoc) const
+{
+	if (!exists(curLoc))
+		throw std::invalid_argument("Piece must exist in location");
+
+	while (exists(curLoc.above())) {
+		curLoc.move(0, 0, 1);
+	}
+	return curLoc;
+}
+
+vector<Location> Board::climb(const Location & curLoc) const
+{
 	vector<Location> destinations;
-	vector<Location> adj = adjecent(curLoc);
-	for (int i = 0; i < 6; i++) {
-		if (exists(adj[i]) && canSlide(adj[i], curLoc)) {
-			destinations.push_back(top(adj[i]));
+	vector<Location> adj = adjecentPieces(curLoc);
+	for (Location loc : adj) {
+		loc = locationOnTop(loc);
+		if (canSlide(loc, curLoc)) {
+			destinations.push_back(locationOnTop(loc));
 		}
 	}
 
 	return destinations;
 }
 
-vector<Location> Board::slideCW(const Location & curLoc)
+vector<Location> Board::slideCW(const Location & curLoc) const
 {
 	if (trapped(curLoc)) {
 		throw std::invalid_argument("Piece cannot be moved");
 	}
-	vector<Location> adj = curLoc.adjecent();
+	vector<Location> adj = curLoc.adjecentLocations();
 	vector<Location> nextLoc;
 
 	//iterate through all six adjecent pieces

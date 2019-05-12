@@ -10,6 +10,7 @@ using std::cin;
 using std::endl;
 using std::vector;
 using std::string;
+using std::move;
 
 // TODO add in proper public/private usage
 // TODO add in const usage
@@ -18,35 +19,40 @@ using std::string;
 
 int main()
 {
-	//string white = "white";
-	//string black = "black";
-	//
-	//Board b;
-	//Piece wAnt = Piece(white, "A");
-	//Piece bQueen = Piece(black, "QUEEN");
-	//Grasshopper wHopper = Grasshopper(white);
-	//
-	//Location test = Location(0, 0, 0);
-	//vector<Location> testv = test.adjecent();
-	//
-	//cout << "Welcome to Hive!\n";
-
-	//printLocations(testv);
-	//cout << "DONE" << endl;
-
-	Game game = Game("Player 1 (W)", "Player 2 (B)");
+	/*testMoves();
+	return 0;*/
+	Game game = Game("Player 1 (White)", "Player 2 (Black)");
 	game.play();
 }
+
+//void testMoves()
+//{
+//	Board b;
+//	b.addPiece(Location(0, 0), unique_ptr<Piece> (new Queen("WHITE")));
+//	b.addPiece(Location(1, 3), unique_ptr<Piece> (new Ant("WHITE")));
+//	b.addPiece(Location(1, 1), unique_ptr<Piece> (new Beetle("WHITE")));
+//	b.addPiece(Location(-1, 1), unique_ptr<Piece> (new Grasshopper("WHITE")));
+//	b.addPiece(Location(0, 2), unique_ptr<Piece> (new Spider("WHITE")));
+//
+//	b.print(b.getMovementLocations(Location(0,0)));
+//	b.print(b.getMovementLocations(Location(1, 1)));
+//	b.print(b.getMovementLocations(Location(1, 3)));
+//	b.print(b.getMovementLocations(Location(0, 2)));
+//	b.print(b.getMovementLocations(Location(-1, 1)));
+//
+//	//printLocations(b.getMovementLocations(Location(1, 1)));
+//
+//}
 
 void printLocations(vector<Location> locations)
 {
 	Board b;
-	Piece testPiece = Piece("test", "TEST");
 
 	//Add pieces to board
 	for (Location l : locations) {
+		unique_ptr<Piece> testPiece(new Piece("test", "TEST"));
 		try {
-			b.add(l, testPiece);
+			b.addPiece(l, move(testPiece));
 		}
 		catch (std::invalid_argument& e) {
 			cout << "Exception when add pieces to board:" << endl;
@@ -73,7 +79,7 @@ Game::~Game()
 void Game::play()
 {
 	cout << "WELCOME TO HIVE - CONSOLE EDITION" << endl;
-	Piece toPlay;
+	//Piece toPlay;
 	Location placementLocation;
 
 	while (!gameOver) {
@@ -98,18 +104,18 @@ void Game::nextTurn()
 
 	curPlayer = (curPlayer + 1) % 2;
 	turnCount++;
-	//Check for game over
+	//TODO Check for game over
 	cout << endl << names[curPlayer] << ", it's your turn!" << endl;
 }
 
-void Game::playPiece(Piece p)
+void Game::playPiece(unique_ptr<Piece> p)
 {
 	if (turnCount == 0) {
-		board.add(Location(0, 0), p);
+		board.addPiece(Location(0, 0), move(p));
 		return;
 	} 
 	if (turnCount == 1) {
-		board.add(Location(0, 2), p);
+		board.addPiece(Location(0, 2), move(p));
 		return;
 	}
 
@@ -125,14 +131,13 @@ void Game::playPiece(Piece p)
 		cout << "Please enter a number between 0 and " << maxLocation << endl;
 		cin >> chosenLocation;
 	}
-	board.add(validLocations[chosenLocation], p);
+	board.addPiece(validLocations[chosenLocation], move(p));
 }
 
-void Game::movePiece(Location l)
+void Game::movePiece(Location locationToMove)
 {
-	//vector<Location> validLocations = board.getPiece(l).moves();
-	vector<Location> validLocations = board.getPlacementLocations(colors[curPlayer]);
 	int chosenLocation = -1;
+	vector<Location> validLocations = board.getMovementLocations(locationToMove);
 
 	cout << names[curPlayer] << ", where do you want to move your piece?" << endl;
 	board.print(validLocations);
@@ -143,43 +148,46 @@ void Game::movePiece(Location l)
 		cout << "Please enter a number between 0 and " << maxLocation << endl;
 		cin >> chosenLocation;
 	}
-	board.move(l, validLocations[chosenLocation]);
+	board.movePiece(locationToMove, validLocations[chosenLocation]);
 }
 
 void Game::playTurn()
 {
-	int chosenPiece = -1;
-	
+	int chosenPieceIndex = -1;
+	const vector<Location> & moveablePieceLocations = board.getMoveablePieces(colors[curPlayer]);
+	int maxPiece = moveablePieceLocations.size() + unusedPieces[curPlayer].size() - 1;
+
 	cout << names[curPlayer] << ", which piece do you want to move/play?" << endl;
-	
+
 	//Pieces already on the board
-	vector<Location> moveablePieces = board.getMoveablePieces(colors[curPlayer]);
-	board.print(moveablePieces);
+	board.print(moveablePieceLocations);
 	
 	//Pieces not yet on the board
-	printUnusedPieces(curPlayer, moveablePieces.size());
+	printUnusedPieces(curPlayer, moveablePieceLocations.size());
 
-	cin >> chosenPiece;
-	int maxPiece = moveablePieces.size() + unusedPieces[curPlayer].size() - 1;
-	while (chosenPiece < 0 || chosenPiece > maxPiece) {
+	cin >> chosenPieceIndex;
+	while (chosenPieceIndex < 0 || chosenPieceIndex > maxPiece) {
 		cout << "Please enter a number between 0 and " << maxPiece << endl;
-		cin >> chosenPiece;
+		cin >> chosenPieceIndex;
 	}
 
-	if (chosenPiece < int(moveablePieces.size())) {
-		movePiece(moveablePieces[chosenPiece]);
+	//Move piece on board
+	if (chosenPieceIndex < int(moveablePieceLocations.size())) {
+		movePiece(moveablePieceLocations[chosenPieceIndex]);
 	}
+	//Remove piece from unused pieces and add to board
 	else {
-		Piece toPlay = unusedPieces[curPlayer][chosenPiece];
-		unusedPieces[curPlayer].erase(unusedPieces[curPlayer].begin() + chosenPiece);
-		playPiece(toPlay);
+		chosenPieceIndex -= moveablePieceLocations.size();
+		unique_ptr<Piece> toPlay (move(unusedPieces[curPlayer][chosenPieceIndex]));
+		unusedPieces[curPlayer].erase(unusedPieces[curPlayer].begin() + chosenPieceIndex);
+		playPiece(move(toPlay));
 	}
 }
 
 
 void Game::printUnusedPieces(int player, int offset) 
 {
-	vector<Piece> pieces = unusedPieces[player];
+	vector<unique_ptr<Piece>> & pieces = unusedPieces[player];
 	int numPieces = pieces.size();
 	int number;
 
@@ -199,13 +207,13 @@ void Game::printUnusedPieces(int player, int offset)
 	}
 	cout << endl;
 
-	for (Piece p : pieces) {
-		cout << "/" << p.paddedName() << "\\";
+	for (unique_ptr<Piece> & p : pieces) {
+		cout << "/" << p->paddedName() << "\\";
 	}
 	cout << endl;
 
-	for (Piece p : pieces) {
-		cout << "\\" << p.paddedColor() << "/";
+	for (unique_ptr<Piece> & p : pieces) {
+		cout << "\\" << p->paddedColor() << "/";
 	}
 	cout << endl;
 
@@ -220,21 +228,21 @@ void Game::printUnusedPieces(int player, int offset)
 void Game::addStartingPieces()
 {
 	for (int i = 0; i < 2; i ++) {
-		unusedPieces.push_back(vector<Piece>());
-		unusedPieces[i].push_back(Queen(colors[i]));
+		unusedPieces.push_back(vector<unique_ptr<Piece>>());
+		unusedPieces[i].emplace_back(new Queen(colors[i]));
 
-		unusedPieces[i].push_back(Beetle(colors[i]));
-		unusedPieces[i].push_back(Beetle(colors[i]));
+		unusedPieces[i].emplace_back(new Beetle(colors[i]));
+		unusedPieces[i].emplace_back(new Beetle(colors[i]));
 		
-		unusedPieces[i].push_back(Spider(colors[i]));
-		unusedPieces[i].push_back(Spider(colors[i]));
+		unusedPieces[i].emplace_back(new Spider(colors[i]));
+		unusedPieces[i].emplace_back(new Spider(colors[i]));
 		
-		unusedPieces[i].push_back(Grasshopper(colors[i]));
-		unusedPieces[i].push_back(Grasshopper(colors[i]));
-		unusedPieces[i].push_back(Grasshopper(colors[i]));
+		unusedPieces[i].emplace_back(new Grasshopper(colors[i]));
+		unusedPieces[i].emplace_back(new Grasshopper(colors[i]));
+		unusedPieces[i].emplace_back(new Grasshopper(colors[i]));
 		
-		unusedPieces[i].push_back(Ant(colors[i]));
-		unusedPieces[i].push_back(Ant(colors[i]));
-		unusedPieces[i].push_back(Ant(colors[i]));
+		unusedPieces[i].emplace_back(new Ant(colors[i]));
+		unusedPieces[i].emplace_back(new Ant(colors[i]));
+		unusedPieces[i].emplace_back(new Ant(colors[i]));
 	}
 }

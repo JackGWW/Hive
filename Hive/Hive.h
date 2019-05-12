@@ -16,6 +16,7 @@
 
 using std::vector;
 using std::string;
+void testMoves();
 void printLocations(vector<Location>);
 
 
@@ -25,7 +26,7 @@ private:
 	vector<string> names;
 	int curPlayer = 0;
 	int turnCount = 0;
-	vector<vector<Piece>> unusedPieces;
+	vector<vector<unique_ptr<Piece>>> unusedPieces;
 	Board board;
 	string white = "white";
 	string black = "black";
@@ -36,7 +37,7 @@ public:
 	~Game();
 	void play();
 	void nextTurn();
-	void playPiece(Piece p);
+	void playPiece(unique_ptr<Piece> p);
 	void movePiece(Location l);
 	void playTurn();
 	void printUnusedPieces(int player, int offset=0);
