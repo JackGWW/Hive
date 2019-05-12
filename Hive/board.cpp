@@ -84,7 +84,6 @@ vector<Location> Board::getPlacementLocations(const string & color)
 vector<Location> Board::getMovementLocations(const Location & l)
 {
 	return pieces.at(l)->moves(*this, l);
-	//return vector<Location>();
 }
 
 void Board::movePiece(Location origin, Location destination)
@@ -333,10 +332,36 @@ void Board::addPiece(const Location& l, unique_ptr<Piece> p)
 	//TODO use return value to check if it was successfully inserted instead of check in advance
 }
 
-//TODO implement the pinned function
-bool Board::pinned(const Location & l) const
+bool Board::pinned(const Location & curLoc) const
 {
-	//can't moved because it would break the hive
+	unordered_set<Location> visited;
+	vector<Location> adj = adjecentPieces(curLoc);
+	queue<Location> toVisit;
+	vector<Location> addToVisit;
+	Location visiting;
+
+	//Traverse all connected pieces from one adjecent piece
+	toVisit.emplace(adj[0]);
+	while (!toVisit.empty()) {
+		visiting = toVisit.front();
+		visited.emplace(visiting);
+
+		addToVisit = adjecentPieces(visiting);
+		for (Location l : addToVisit) {
+			//Don't add places we've already visisted
+			if (!visited.count(l)) {
+				toVisit.push(l);
+			}
+		}
+		toVisit.pop();
+	}
+
+	//If the adjecent pieces aren't connected, it is pinned
+	for (Location l : adj) {
+		if (!visited.count(l)) {
+			return true;
+		}
+	}
 	return false;
 }
 
