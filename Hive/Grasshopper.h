@@ -12,7 +12,7 @@ class Grasshopper :
 {
 public:
 	Grasshopper(string);
-	vector<Location> moves(Board, Location);
+	vector<Location> moves(const Board & b, Location);
 	~Grasshopper();
 };
 

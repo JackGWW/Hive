@@ -12,7 +12,8 @@ class Queen :
 {
 public:
 	Queen(string);
-	vector<Location> moves(Board, Location);
+	vector<Location> moves(const Board & b, Location);
+	bool isQueen();
 	~Queen();
 };
 

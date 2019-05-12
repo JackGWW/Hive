@@ -8,7 +8,7 @@ Ant::Ant(string _color)
 	name = "ANT";
 }
 
-vector<Location> Ant::moves(Board b, Location curLoc)
+vector<Location> Ant::moves(const Board & b, Location curLoc)
 {
 	return b.slide(curLoc);
 }

@@ -13,7 +13,7 @@ Spider::~Spider()
 }
 
 
-vector<Location> Spider::moves(Board b, Location curLoc)
+vector<Location> Spider::moves(const Board & b, Location curLoc)
 {
 	return b.slide(curLoc, 3);
 }

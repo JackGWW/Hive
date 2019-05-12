@@ -2,6 +2,8 @@
 #include "piece.h"
 #include <string>
 #include <iostream>
+#include "board.h"
+
 
 using std::string;
 using std::cout;
@@ -54,4 +56,14 @@ void Piece::print()
 	cout << "/" << addPadding(name) << "\\" << endl;
 	cout << "\\" << addPadding(color) << "/" << endl;
 	cout << " \\____/" << endl;
+}
+
+bool Piece::isQueen() 
+{
+	return false;
+}
+
+vector<Location> Piece::moves(const Board &, Location)
+{
+	return vector<Location>();
 }

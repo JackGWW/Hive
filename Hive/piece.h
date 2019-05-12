@@ -1,9 +1,15 @@
 #pragma once
 #include <string>
+#include <vector>
+#include "location.h"
+#include "boost\noncopyable.hpp"
 
+using std::vector;
 using std::string;
 
-class Piece
+class Board;
+
+class Piece //: boost::noncopyable
 {
 private:
 public:
@@ -15,4 +21,6 @@ public:
 	Piece();
 	~Piece();
 	void print();
+	virtual bool isQueen();
+	virtual vector<Location> moves(const Board &, Location);
 };

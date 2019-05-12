@@ -8,7 +8,7 @@ Beetle::Beetle(string _color)
 	name = "BEETLE";
 }
 
-vector<Location> Beetle::moves(Board b, Location curLoc)
+vector<Location> Beetle::moves(const Board & b, Location curLoc)
 {
 	vector<Location> potentialMoves;
 	vector<Location> toAdd;

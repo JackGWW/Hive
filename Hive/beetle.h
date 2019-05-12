@@ -12,7 +12,7 @@ class Beetle :
 {
 public:
 	Beetle(string);
-	vector<Location> moves(Board, Location);
+	vector<Location> moves(const Board & b, Location);
 	~Beetle();
 };
 

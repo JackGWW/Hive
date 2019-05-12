@@ -13,9 +13,9 @@ Grasshopper::~Grasshopper()
 }
 
 
-vector<Location> Grasshopper::moves(Board b, Location cur) {
+vector<Location> Grasshopper::moves(const Board & b, Location cur) {
 	vector<Location> destinations;
-	vector<Location> adj = cur.adjecent();
+	vector<Location> adj = cur.adjecentLocations();
 
 	Location next;
 	int xStep, yStep;

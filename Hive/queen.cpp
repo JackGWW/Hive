@@ -6,9 +6,14 @@ Queen::Queen(string _color)
 	name = "QUEEN";
 }
 
-vector<Location> Queen::moves(Board b, Location curLoc)
+vector<Location> Queen::moves(const Board & b, Location curLoc)
 {
 	return b.slide(curLoc, 1);
+}
+
+bool Queen::isQueen()
+{
+	return true;
 }
 
 Queen::~Queen()

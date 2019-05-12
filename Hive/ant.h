@@ -12,7 +12,7 @@ class Ant :
 {
 public:
 	Ant(string);
-	vector<Location> moves(Board, Location);
+	vector<Location> moves(const Board &, Location);
 	~Ant();
 };
 
