@@ -14,7 +14,7 @@ struct Location
 	Location(int, int);
 	Location();
 	string to_string() const;
-	vector<Location> adjecent() const;
+	vector<Location> adjecentLocations() const;
 	void move(int, int, int);
 	void move(int, int);
 	Location above() const;
