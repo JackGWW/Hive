@@ -40,6 +40,9 @@ public:
 	void playPiece(unique_ptr<Piece> p);
 	void movePiece(Location l);
 	void playTurn();
+	int playerTurn(int player);
+	bool mustPlayQueen(int player);
+	int countPlayablePieces(int player);
 	void printUnusedPieces(int player, int offset=0);
 	void addStartingPieces();
 };

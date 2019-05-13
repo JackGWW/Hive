@@ -22,6 +22,7 @@ private:
 public:
 	Board();
 	~Board();
+	bool getQueenPlayed(string color);
 	bool onTop(const Location & l);
 	bool onlyTouches(const Location & l, const string & color);
 	vector<Location> getColoredPieces(const string & color);

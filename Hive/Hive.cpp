@@ -155,7 +155,7 @@ void Game::playTurn()
 {
 	int chosenPieceIndex = -1;
 	const vector<Location> & moveablePieceLocations = board.getMoveablePieces(colors[curPlayer]);
-	int maxPiece = moveablePieceLocations.size() + unusedPieces[curPlayer].size() - 1;
+	int maxPiece = moveablePieceLocations.size() + countPlayablePieces(curPlayer) - 1;
 
 	cout << names[curPlayer] << ", which piece do you want to move/play?" << endl;
 
@@ -184,12 +184,36 @@ void Game::playTurn()
 	}
 }
 
+int Game::playerTurn(int player)
+{
+	return ((turnCount - player) / 2) + 1;
+}
+
+bool Game::mustPlayQueen(int player) {
+	if (!board.getQueenPlayed(colors[player]) && playerTurn(player) >= 4) {
+		return true;
+	}
+	return false;
+}
+
+int Game::countPlayablePieces(int player)
+{
+	if (mustPlayQueen(player))
+		return 1;
+	return unusedPieces[player].size();
+}
 
 void Game::printUnusedPieces(int player, int offset) 
 {
 	vector<unique_ptr<Piece>> & pieces = unusedPieces[player];
-	int numPieces = pieces.size();
 	int number;
+	int numPieces;
+	if (mustPlayQueen(player)) {
+		numPieces = 1;
+	}
+	else {
+		numPieces = pieces.size();
+	}
 
 	for (int i = 0; i < numPieces; i++) {
 		cout << "  ____  ";
@@ -207,13 +231,13 @@ void Game::printUnusedPieces(int player, int offset)
 	}
 	cout << endl;
 
-	for (unique_ptr<Piece> & p : pieces) {
-		cout << "/" << p->paddedName() << "\\";
+	for (int i = 0; i < numPieces; i++) {
+		cout << "/" << pieces[i]->paddedName() << "\\";
 	}
 	cout << endl;
 
-	for (unique_ptr<Piece> & p : pieces) {
-		cout << "\\" << p->paddedColor() << "/";
+	for (int i = 0; i < numPieces; i++) {
+		cout << "\\" << pieces[i]->paddedColor() << "/";
 	}
 	cout << endl;
 

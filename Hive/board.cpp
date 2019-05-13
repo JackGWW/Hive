@@ -31,6 +31,11 @@ Board::~Board()
 {
 }
 
+bool Board::getQueenPlayed(string color)
+{
+	return queenPlayed[color];
+}
+
 
 bool Board::onTop(const Location & l) {
 	if (!(exists(l))) {
@@ -106,22 +111,17 @@ vector<Location> Board::getMoveablePieces(string color)
 {
 	vector<Location> moveablePieces;
 	vector<Location> allLocations = getColoredPieces(color);
-	bool queenPlaced = false;
+
+	if (!queenPlayed[color]) {
+		return vector<Location>();
+	}
 
 	for (Location l : allLocations) {
-		if (pieces.at(l)->isQueen()) {
-			queenPlaced = true;
-		}
 		if (!trapped(l)) {
 			moveablePieces.push_back(l);
 		}
 	}
-	if (queenPlaced) {
-		return moveablePieces;
-	}
-	else {
-		return vector<Location>();
-	}
+	return moveablePieces;
 }
 
 template < typename T>
@@ -322,12 +322,16 @@ void Board::print(vector<Location> numberedLocations)
 	}
 }
 
-
 void Board::addPiece(const Location& l, unique_ptr<Piece> p)
 {
 	if (exists(l)){
 		throw std::invalid_argument("There is already a piece in location: " + l.to_string());
 	}
+
+	if (p->isQueen()) {
+		queenPlayed[p->color]= true;
+	}
+
 	pieces.emplace(l, move(p));
 	//TODO use return value to check if it was successfully inserted instead of check in advance
 }
