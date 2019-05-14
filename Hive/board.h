@@ -25,6 +25,7 @@ public:
 	bool getQueenPlayed(string color);
 	bool onTop(const Location & l);
 	bool onlyTouches(const Location & l, const string & color);
+	int checkForWinner(vector<string> colors);
 	vector<Location> getColoredPieces(const string & color);
 	vector<Location> getPlacementLocations(const string & color);
 	vector<Location> getMovementLocations(const Location &);
@@ -40,6 +41,7 @@ public:
 	vector<Location> slide(const Location & curLoc, int moves) const;
 	vector<Location> slide(const Location & curLoc) const;
 	vector<Location> groundedAdjecentLocations(const Location & l) const;
+	vector<Location> groundedAdjecentPieces(const Location & curLoc) const;
 	vector<Location> slideOnTop(const Location & curLoc) const;
 	vector<Location> slideCW(const Location & curLoc) const;
 	vector<Location> slideCCW(const Location & curLoc) const;
@@ -52,8 +54,12 @@ public:
 	bool pinned(const Location & l) const;
 	bool covered(Location l) const;
 	bool surrounded(const Location & l) const;
+	bool fullySurrounded(const Location & curLoc) const;
 	bool trapped(const Location & l) const;
 };
+
+template < typename T>
+std::pair<bool, int > findInVector(const std::vector<T>  & vecOfElements, const T  & element);
 
 std::pair<bool, int> findInVector2D(const std::vector<Location>& vecOfElements, const Location & element);
 

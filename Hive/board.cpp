@@ -48,12 +48,47 @@ bool Board::onTop(const Location & l) {
 bool Board::onlyTouches(const Location & l, const string & color) {
 	vector<Location> adj = adjecentPieces(l);
 	for (Location a : adj) {
-		if (pieces.at(a)->color != color) {
+		if (pieces.at(topPieceLocation(a))->color != color) {
 			return false;
 		}
 	}
 	return true;
 }
+
+int Board::checkForWinner(vector<string> colors) {
+	int countQueensSurrounded = 0;
+	string losingColor = "";
+
+	for (auto& it : pieces) {
+		if (it.second->isQueen()) {
+			if (fullySurrounded(it.first)) {
+				losingColor = it.second->color;
+				countQueensSurrounded++;
+			}
+		}
+	}
+
+	//Nobody has won
+	if (countQueensSurrounded == 0) {
+		return -1;
+	}
+
+	//Tie Game
+	if (countQueensSurrounded == 2) {
+		return 2;
+	}
+	
+	std::pair<bool, int> result = findInVector<string>(colors, losingColor);
+
+	//Return opposite of whichever queen got surrounded
+	if (result.first) {
+		return (result.second + 1) % 2;
+	}
+	else {
+		throw std::invalid_argument("Queen color not in vector of colors");
+	}
+}
+
 
 vector<Location> Board::getColoredPieces(const string & color) {
 	vector<Location> allLocations;
@@ -197,8 +232,6 @@ string intToString(int number) {
 
 }
 
-
-
 void Board::print()
 {
 	print(vector<Location>());
@@ -338,11 +371,23 @@ void Board::addPiece(const Location& l, unique_ptr<Piece> p)
 
 bool Board::pinned(const Location & curLoc) const
 {
+	if (curLoc.z > 0) {
+		return false;
+	}
+
 	unordered_set<Location> visited;
-	vector<Location> adj = adjecentPieces(curLoc);
 	queue<Location> toVisit;
 	vector<Location> addToVisit;
 	Location visiting;
+	vector<Location> adj = adjecentPieces(curLoc);
+
+	//Can't be pinned if leaf node
+	if (adj.size() == 1) {
+		return false;
+	}
+
+	//Don't explore the current location
+	visited.emplace(curLoc);
 
 	//Traverse all connected pieces from one adjecent piece
 	toVisit.emplace(adj[0]);
@@ -378,13 +423,23 @@ bool Board::covered(Location l) const
 
 bool Board::surrounded(const Location & l) const 
 {	
-	//Can't physically move
+	//Check if can't physically slide
 	//If there are two consecutive empty adjecent spaces, it isn't surrounded
 	vector<Location> adj = l.adjecentLocations();
 	for (int i = 0; i < 6; i++) { 
 		if (!exists(adj[i]) && !exists(adj[(i + 1) % 6])) {
 			return false;
 		}
+	}
+	return true;
+}
+
+bool Board::fullySurrounded(const Location & curLoc) const
+{
+	vector<Location> adj = curLoc.adjecentLocations();
+	for (Location l : adj) {
+		if (!exists(l))
+			return false;
 	}
 	return true;
 }
@@ -464,6 +519,16 @@ vector<Location> Board::groundedAdjecentLocations(const Location & l) const
 	return Location(l.x, l.y).adjecentLocations();
 }
 
+vector<Location> Board::groundedAdjecentPieces(const Location & curLoc) const
+{
+	vector<Location> pieceLocations;
+	for (Location l : groundedAdjecentLocations(curLoc)) {
+		if (exists(l))
+			pieceLocations.push_back(l);
+	}
+	return pieceLocations;
+}
+
 vector<Location> Board::slideOnTop(const Location & curLoc) const
 {
 	if (curLoc.z <= 0) {
@@ -475,12 +540,12 @@ vector<Location> Board::slideOnTop(const Location & curLoc) const
 		return destinations;
 	}
 
-	vector<Location> groundAdj = groundedAdjecentLocations(curLoc);
-	for (Location dest : groundAdj) {
-		if (exists(dest)){
-			if (canSlide(dest, curLoc)) {
-				destinations.push_back(dest);
-			}
+	Location dest;
+	vector<Location> groundAdj = groundedAdjecentPieces(curLoc);
+	for (Location l: groundAdj) {
+		dest = locationOnTop(l);
+		if (canSlide(dest, curLoc)) {
+			destinations.push_back(dest);
 		}
 	}
 	return destinations;
@@ -542,9 +607,6 @@ vector<Location> Board::slide(const Location & curLoc, int moves) const
 
 vector<Location> Board::slideCCW(const Location & curLoc) const
 {
-	if (trapped(curLoc)){
-		throw std::invalid_argument("Piece cannot be moved");
-	}
 	vector<Location> adj = curLoc.adjecentLocations();
 	vector<Location> nextLoc;
 
@@ -599,7 +661,7 @@ vector<Location> Board::descend(const Location & curLoc) const
 		return destinations;
 	}
 
-	vector<Location> adj = adjecentPieces(curLoc);
+	vector<Location> adj = curLoc.adjecentLocations();
 	
 	for (Location l : adj) {
 		int xCoord = l.x;
@@ -648,9 +710,6 @@ vector<Location> Board::climb(const Location & curLoc) const
 
 vector<Location> Board::slideCW(const Location & curLoc) const
 {
-	if (trapped(curLoc)) {
-		throw std::invalid_argument("Piece cannot be moved");
-	}
 	vector<Location> adj = curLoc.adjecentLocations();
 	vector<Location> nextLoc;
 

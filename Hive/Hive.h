@@ -31,7 +31,7 @@ private:
 	string white = "white";
 	string black = "black";
 	vector<string> colors{ white, black };
-	bool gameOver = false;
+	int winner = -1;
 public:
 	Game(string, string);
 	~Game();

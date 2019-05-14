@@ -19,30 +19,10 @@ using std::move;
 
 int main()
 {
-	/*testMoves();
-	return 0;*/
 	Game game = Game("Player 1 (White)", "Player 2 (Black)");
 	game.play();
 }
 
-//void testMoves()
-//{
-//	Board b;
-//	b.addPiece(Location(0, 0), unique_ptr<Piece> (new Queen("WHITE")));
-//	b.addPiece(Location(1, 3), unique_ptr<Piece> (new Ant("WHITE")));
-//	b.addPiece(Location(1, 1), unique_ptr<Piece> (new Beetle("WHITE")));
-//	b.addPiece(Location(-1, 1), unique_ptr<Piece> (new Grasshopper("WHITE")));
-//	b.addPiece(Location(0, 2), unique_ptr<Piece> (new Spider("WHITE")));
-//
-//	b.print(b.getMovementLocations(Location(0,0)));
-//	b.print(b.getMovementLocations(Location(1, 1)));
-//	b.print(b.getMovementLocations(Location(1, 3)));
-//	b.print(b.getMovementLocations(Location(0, 2)));
-//	b.print(b.getMovementLocations(Location(-1, 1)));
-//
-//	//printLocations(b.getMovementLocations(Location(1, 1)));
-//
-//}
 
 void printLocations(vector<Location> locations)
 {
@@ -79,21 +59,19 @@ Game::~Game()
 void Game::play()
 {
 	cout << "WELCOME TO HIVE - CONSOLE EDITION" << endl;
-	//Piece toPlay;
-	Location placementLocation;
 
-	while (!gameOver) {
-		//get moveable pieces (unplayed and on board)
+	while (winner == -1) {
+		
 		
 		playTurn();
 		nextTurn();
 	}
-	//TODO add checks that pieces can be added or moved
-	for (int i = 0; i < 50; i++) {
-		// TODO add check that you have a piece to play
-		
+	if (winner == 2) {
+		cout << "TIE GAME" << endl;
 	}
-	
+	else {
+		cout << names[winner] << " WON, CONGRATS" << endl;
+	}
 	cout << "THANKS FOR PLAYING!" << endl;
 }
 
@@ -104,8 +82,7 @@ void Game::nextTurn()
 
 	curPlayer = (curPlayer + 1) % 2;
 	turnCount++;
-	//TODO Check for game over
-	cout << endl << names[curPlayer] << ", it's your turn!" << endl;
+	winner = board.checkForWinner(colors);
 }
 
 void Game::playPiece(unique_ptr<Piece> p)
@@ -153,11 +130,14 @@ void Game::movePiece(Location locationToMove)
 
 void Game::playTurn()
 {
+	//TODO add checks that pieces can be added or moved
+	// TODO add check that you have a piece to play
 	int chosenPieceIndex = -1;
 	const vector<Location> & moveablePieceLocations = board.getMoveablePieces(colors[curPlayer]);
 	int maxPiece = moveablePieceLocations.size() + countPlayablePieces(curPlayer) - 1;
 
-	cout << names[curPlayer] << ", which piece do you want to move/play?" << endl;
+	cout << endl << names[curPlayer] << ", it's your turn!" << endl;
+	cout << "Which piece do you want to move/play?" << endl;
 
 	//Pieces already on the board
 	board.print(moveablePieceLocations);
@@ -234,7 +214,7 @@ void Game::printUnusedPieces(int player, int offset)
 	for (int i = 0; i < numPieces; i++) {
 		cout << "/" << pieces[i]->paddedName() << "\\";
 	}
-	cout << endl;
+	cout << endl; 
 
 	for (int i = 0; i < numPieces; i++) {
 		cout << "\\" << pieces[i]->paddedColor() << "/";
