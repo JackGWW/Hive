@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include "location.h"
-#include "boost\noncopyable.hpp"
+//#include "boost\noncopyable.hpp"
 
 using std::vector;
 using std::string;

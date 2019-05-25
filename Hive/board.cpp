@@ -22,6 +22,8 @@ using std::queue;
 using std::unique_ptr;
 
 
+//TODO remove current piece when sliding to avoid it sliding onto itself.
+
 Board::Board()
 {
 }
@@ -493,6 +495,7 @@ vector<Location> Board::slide(const Location & curLoc) const
 		return vector<Location>();
 	}
 
+	//Slide clock wise around entire board
 	addToVisit = slideCW(curLoc);
 	for (Location l : addToVisit) {
 		toVisit.push(l);
