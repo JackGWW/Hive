@@ -68,3 +68,9 @@ string locationIndex(const vector<Location> & allLocations, const Location & spe
 string locationIndex2D(const vector<Location>& allLocations, const Location & specificLocation);
 
 string intToString(int number);
+
+void setColor(string teamColor, int piece);
+
+void resetColor();
+
+void clearColor();

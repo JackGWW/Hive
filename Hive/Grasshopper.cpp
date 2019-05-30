@@ -5,6 +5,7 @@ Grasshopper::Grasshopper(string _color)
 {
 	color = _color;
 	name = "HOPPER";
+	nameColor = 2; //Green
 }
 
 

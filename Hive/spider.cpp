@@ -5,6 +5,7 @@ Spider::Spider(string _color)
 {
 	color = _color;
 	name = "SPIDER";
+	nameColor = 8; //greyish brown
 }
 
 

@@ -12,6 +12,10 @@
 #include <set>
 #include <memory>
 
+//Needed for color printing
+#include <iostream>
+#include <windows.h> // WinApi header
+
 
 using std::cout;
 using std::endl;
@@ -20,6 +24,7 @@ using std::unordered_map;
 using std::unordered_set;
 using std::queue;
 using std::unique_ptr;
+using std::max;
 
 
 //TODO remove current piece when sliding to avoid it sliding onto itself.
@@ -239,6 +244,51 @@ void Board::print()
 	print(vector<Location>());
 }
 
+//TODO Move into a different file
+//TODO rearchitect so that it doesn't rely on string matching
+void setColor(string teamColor, int textColor) {
+	unordered_map<string, int> colorMapping = {
+		{"white", 15},
+		{"black", 0}
+	};
+
+	//Set text color to opposite of background
+	if (textColor == -1) {
+		if (teamColor == "white") {
+			textColor = colorMapping["black"];
+		}
+		else {
+			textColor = colorMapping["white"];
+		}
+	}
+
+	int consoleColor = textColor + colorMapping[teamColor] * 16;
+	
+	HANDLE hConsole;
+	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	SetConsoleTextAttribute(hConsole, consoleColor);
+
+}
+
+void resetColor() {
+	int defaultColor = 128;
+	
+	HANDLE hConsole;
+	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	SetConsoleTextAttribute(hConsole, defaultColor);
+}
+
+void clearColor() {
+	int defaultColor = 15;
+
+	HANDLE hConsole;
+	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	SetConsoleTextAttribute(hConsole, defaultColor);
+}
+
 void Board::print(vector<Location> numberedLocations)
 {
 	int maxX = INT_MIN, maxY = INT_MIN;
@@ -270,6 +320,11 @@ void Board::print(vector<Location> numberedLocations)
 	string number; 
 	string prefix;
 	Location curLocation;
+	string pieceTeamColor;
+	int pieceNameColor;
+
+	resetColor();
+
 	for (int y = maxY + 1; y >= minY - 1; y--) {
 		//Iterate through top 2 lines of the hexagon
 		for (int line = 0; line < 2; line++) {
@@ -289,13 +344,21 @@ void Board::print(vector<Location> numberedLocations)
 							prefix = " ";
 						}
 						if (exists2D(curLocation) || exists2D(Location(x - 1, y + 1))) {
+							//Current location has a piece
 							if (exists2D(curLocation)) {
-								cout << prefix << "/ " << number << " ";						
+								cout << prefix << "/";
+
+								pieceTeamColor = pieces[topPieceLocation(curLocation)]->color;
+								setColor(pieceTeamColor, -1);
+								cout << " " << number << " ";
+								resetColor();
 							}
+							//Location to the upper left has a piece
 							else {
 								cout << prefix << "/    ";
 							}
 						}
+						//No piece here
 						else {
 							cout << "      ";
 						}
@@ -304,7 +367,13 @@ void Board::print(vector<Location> numberedLocations)
 					else {
 						if (exists2D(Location(x, y + 1))) {
 							color = pieces[topPieceLocation(Location(x, y + 1))]->paddedColor();
-							cout << "\\" << color;
+							cout << "\\";
+							
+							pieceTeamColor = pieces[topPieceLocation(Location(x, y + 1))]->color;
+							pieceNameColor = pieces[topPieceLocation(Location(x, y + 1))]->nameColor;
+							setColor(pieceTeamColor, pieceNameColor);
+							cout << color;
+							resetColor();
 						}
 						else if(exists2D(Location(x - 1, y ))) {
 						    cout << "\\     ";
@@ -318,8 +387,14 @@ void Board::print(vector<Location> numberedLocations)
 					if ((y + x) % 2 == 0) {
 						number = locationIndex2D(numberedLocations, curLocation);
 						if (exists2D(curLocation)) {
+							cout << "/";
+							
 							name = pieces[topPieceLocation(curLocation)]->paddedName();
-							cout << "/" << name;
+							pieceTeamColor = pieces[topPieceLocation(Location(curLocation))]->color;
+							pieceNameColor = pieces[topPieceLocation(Location(curLocation))]->nameColor;
+							setColor(pieceTeamColor, pieceNameColor);
+							cout << name;
+							resetColor();
 						}
 						else if (exists2D(Location(x - 1, y + 1))) {
 							cout << "/ " << number << "  ";
@@ -342,7 +417,12 @@ void Board::print(vector<Location> numberedLocations)
 							cout << "  ";
 						}
 						if (exists2D(Location(x, y + 1)) || exists2D(Location(x, y -1))) {
+							if (exists2D(Location(x, y + 1))) {
+								pieceTeamColor = pieces[topPieceLocation(Location(x, y + 1))]->color;
+								setColor(pieceTeamColor, 0);
+							}
 							cout << "____";
+							resetColor();
 						}
 						else {
 							cout << "    ";
@@ -355,6 +435,7 @@ void Board::print(vector<Location> numberedLocations)
 			cout << endl;
 		}
 	}
+	clearColor();
 }
 
 void Board::addPiece(const Location& l, unique_ptr<Piece> p)
@@ -638,7 +719,7 @@ bool Board::canSlide(const Location & end, const Location & start) const
 	if (!isAdjecent2D(start, end)) {
 		throw std::invalid_argument("Pieces must be adjecent");
 	}
-	int zCoord = std::max(start.z, end.z);
+	int zCoord = max(start.z, end.z);
 	vector<Location> guardPieces;
 	vector<Location> startAdj = adjecentPieces(Location(start.x, start.y, zCoord));
 	

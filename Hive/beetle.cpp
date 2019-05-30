@@ -6,6 +6,7 @@ Beetle::Beetle(string _color)
 {
 	color = _color;
 	name = "BEETLE";
+	nameColor = 5; //purple
 }
 
 vector<Location> Beetle::moves(const Board & b, Location curLoc)

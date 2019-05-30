@@ -14,6 +14,7 @@ class Piece //: boost::noncopyable
 private:
 public:
 	string name;
+	int nameColor;
 	string color;
 	string paddedColor();
 	string paddedName();

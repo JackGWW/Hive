@@ -16,6 +16,8 @@ using std::move;
 // TODO add in const usage
 // TODO add virtual classes and virtual desctructor to piece
 
+#include <iostream>
+#include <windows.h> // WinApi header
 
 int main()
 {

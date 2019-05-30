@@ -4,6 +4,7 @@ Queen::Queen(string _color)
 {
 	color = _color;
 	name = "QUEEN";
+	nameColor = 6; //yellow
 }
 
 vector<Location> Queen::moves(const Board & b, Location curLoc)

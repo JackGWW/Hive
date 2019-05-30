@@ -39,6 +39,7 @@ string Piece::paddedName()
 Piece::Piece() {
 	color = "B/W";
 	name = "??";
+	nameColor = 15;
 }
 
 Piece::Piece(string _color, string _name) : color(_color), name(_name)
