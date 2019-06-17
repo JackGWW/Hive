@@ -582,13 +582,18 @@ vector<Location> Board::slide(const Location & curLoc) const
 		toVisit.push(l);
 	}
 
+	//Stop sliding once the CCW side of the current piece is reached
+	for (Location l : slideCCW(curLoc)) {
+		visited.emplace(l);
+	}
+
 	while (!toVisit.empty()) {
 		visiting = toVisit.front();
 		visited.emplace(visiting);
 
 		addToVisit = slideCW(visiting);
 		for (Location l : addToVisit) {
-			//Don't add places we've already checked
+			//Don't revist past places
 			if (!visited.count(l)) {
 				toVisit.push(l);
 			}
