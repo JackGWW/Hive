@@ -132,13 +132,18 @@ void Game::movePiece(Location locationToMove)
 
 void Game::playTurn()
 {
-	//TODO add checks that pieces can be added or moved
-	// TODO add check that you have a piece to play
+	//TODO handle logic where piece cannot legally be added to the board
 	int chosenPieceIndex = -1;
 	const vector<Location> & moveablePieceLocations = board.getMoveablePieces(colors[curPlayer]);
 	int maxPiece = moveablePieceLocations.size() + countPlayablePieces(curPlayer) - 1;
 
 	cout << endl << names[curPlayer] << ", it's your turn!" << endl;
+
+	//No legal moves
+	if (maxPiece < 0) {
+		cout << "Your turn is skipped as you have no legal moves." << endl;
+		return;
+	}
 	cout << "Which piece do you want to move/play?" << endl;
 
 	//Pieces already on the board
@@ -153,7 +158,7 @@ void Game::playTurn()
 		cin >> chosenPieceIndex;
 	}
 
-	//Move piece on board
+	//Check if piece is being moved or added to the board
 	if (chosenPieceIndex < int(moveablePieceLocations.size())) {
 		movePiece(moveablePieceLocations[chosenPieceIndex]);
 	}
