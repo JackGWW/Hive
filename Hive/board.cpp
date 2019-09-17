@@ -567,6 +567,7 @@ vector<Location> Board::adjecentPieces(const Location & l) const
 
 vector<Location> Board::slide(const Location & curLoc) const
 {
+	//Function will keep sliding clockwise until it reaches locations it's already visited
 	unordered_set<Location> visited;
 	queue<Location> toVisit;
 	vector<Location> addToVisit;
@@ -575,8 +576,15 @@ vector<Location> Board::slide(const Location & curLoc) const
 	if (trapped(curLoc)){
 		return vector<Location>();
 	}
+	
+	//Add CCW neighbouring location(s) to visited
+	//This will stop the function from 
+	addToVisit = slideCCW(curLoc);
+	for (Location l : addToVisit) {
+		visited.emplace(visiting);
+	}
 
-	//Slide clock wise around entire board
+	//Set CW neighbouring location(s) as the starting location
 	addToVisit = slideCW(curLoc);
 	for (Location l : addToVisit) {
 		toVisit.push(l);
